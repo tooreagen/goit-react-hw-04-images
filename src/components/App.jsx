@@ -93,7 +93,7 @@ export class App extends Component {
         {this.state.isLoading && <Loader />}
         <ToastContainer
           position="bottom-center"
-          autoClose={2000}
+          autoClose={3000}
           hideProgressBar={false}
           newestOnTop={false}
           closeOnClick
