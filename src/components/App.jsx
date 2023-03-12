@@ -1,4 +1,3 @@
-import { Component } from 'react';
 import { Layout } from './Layout';
 import { GlobalStyle } from './GlobalStyle';
 import { Searchbar } from './Searchbar/Searchbar';
@@ -8,46 +7,43 @@ import { Button } from './Button/Button';
 import { Loader } from './Loader/Loader';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useState, useEffect } from 'react';
 
-export class App extends Component {
-  state = {
-    images: [],
-    queryString: '',
-    page: 1,
-    isLoading: false,
-    error: null,
-    totalHits: 0,
-  };
+export function App() {
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [queryString, setQueryString] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [totalHits, setTotalHits] = useState(0);
+  const [firstRunning, setFirstRunning] = useState(true);
 
-  handleSubmit = evt => {
+  const handleSubmit = evt => {
     evt.preventDefault();
-    const queryString = evt.currentTarget.elements.search.value;
-    if (!queryString) {
+    const queryStringInput = evt.currentTarget.elements.search.value;
+    if (!queryStringInput) {
       toast('Enter search text');
       return;
     }
-    if (this.state.queryString !== queryString) {
-      this.setState({
-        images: [],
-        queryString: queryString,
-        page: 1,
-      });
+    if (queryString !== queryStringInput) {
+      setImages([]);
+      setQueryString(queryStringInput);
+      setPage(1);
+      setFirstRunning(false);
     }
   };
 
-  handleLoadMore = () => {
-    this.setState({ page: this.state.page + 1 });
+  const handleLoadMore = () => {
+    setPage(page + 1);
   };
 
-  async componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.page !== this.state.page ||
-      prevState.queryString !== this.state.queryString
-    ) {
+  useEffect(() => {
+    if (firstRunning) {
+      return;
+    }
+    const fetchImages = async () => {
       try {
-        this.setState({ isLoading: true });
-        const page = this.state.page;
-        const queryString = this.state.queryString;
+        setIsLoading(true);
         const imagesObject = await getImages(queryString, page);
         const imagesObjectFiltered = [];
 
@@ -59,52 +55,42 @@ export class App extends Component {
             tags: item.tags,
           });
         });
-
-        this.setState(prevState => ({
-          images: [...prevState.images, ...imagesObjectFiltered],
-          totalHits: imagesObject.totalHits,
-        }));
+        setImages([...images, ...imagesObjectFiltered]);
+        setTotalHits(imagesObject.totalHits);
       } catch (error) {
-        this.setState({ error });
+        setError(error);
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
-    }
-  }
+    };
+    fetchImages();
+  }, [page, queryString]);
 
-  render() {
-    return (
-      <Layout>
-        <Searchbar handleSubmit={this.handleSubmit} />
-        {this.state.error && (
-          <p>
-            What is happening here anyway? Error: {this.state.error.message}
-          </p>
-        )}
+  return (
+    <Layout>
+      <Searchbar handleSubmit={handleSubmit} />
+      {error && <p>What is happening here anyway? Error: {error.message}</p>}
 
-        <ImageGallery imagesList={this.state.images} />
+      <ImageGallery imagesList={images} />
 
-        {this.state.images.length !== 0 &&
-          this.state.totalHits &&
-          this.state.images.length < this.state.totalHits && (
-            <Button handleLoadMore={this.handleLoadMore} />
-          )}
+      {images.length !== 0 && totalHits && images.length < totalHits && (
+        <Button handleLoadMore={handleLoadMore} />
+      )}
 
-        {this.state.isLoading && <Loader />}
-        <ToastContainer
-          position="bottom-center"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-        />
-        <GlobalStyle />
-      </Layout>
-    );
-  }
+      {isLoading && <Loader />}
+      <ToastContainer
+        position="bottom-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
+      <GlobalStyle />
+    </Layout>
+  );
 }
