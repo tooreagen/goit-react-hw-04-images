@@ -1,53 +1,47 @@
-import { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 import { ImageGalleryList } from './ImageGallery.styled';
 import { Modal } from '../Modal/Modal';
+import { useState } from 'react';
 
+export function ImageGallery({ imagesList }) {
+  const [imageToModal, setImageToModal] = useState(null);
+  const [imageTags, setImageTags] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
-export class ImageGallery extends Component {
-  state = {
-    imageToModal: null,
-    imageTags: null,
-    showModal: false,
+  const handleImageClick = (img, tags) => {
+    setImageToModal(img);
+    setImageTags(tags);
   };
 
-  handleImageClick = (img, tags) => {
-    this.setState({ imageToModal: img, imageTags: tags });
+  const modalTogle = () => {
+    setShowModal(!showModal);
   };
 
-  modalTogle = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
-  };
-
-  render() {
-    return (
-      <>
-        <ImageGalleryList onClick={this.modalTogle}>
-          {this.props.imagesList.map(item => {
-            return (
-              <ImageGalleryItem
-                key={item.id}
-                webformatURL={item.webformatURL}
-                largeImageURL={item.largeImageURL}
-                tags={item.tags}
-                onClick={() =>
-                  this.handleImageClick(item.largeImageURL, item.tags)
-                }
-              />
-            );
-          })}
-        </ImageGalleryList>
-        {this.state.showModal && (
-          <Modal
-            onModalClose={this.modalTogle}
-            imageURL={this.state.imageToModal}
-            imageAlt={this.state.imageTags}
-          />
-        )}
-      </>
-    );
-  }
+  return (
+    <>
+      <ImageGalleryList onClick={modalTogle}>
+        {imagesList.map(item => {
+          return (
+            <ImageGalleryItem
+              key={item.id}
+              webformatURL={item.webformatURL}
+              largeImageURL={item.largeImageURL}
+              tags={item.tags}
+              onClick={() => handleImageClick(item.largeImageURL, item.tags)}
+            />
+          );
+        })}
+      </ImageGalleryList>
+      {showModal && (
+        <Modal
+          onModalClose={modalTogle}
+          imageURL={imageToModal}
+          imageAlt={imageTags}
+        />
+      )}
+    </>
+  );
 }
 
 ImageGallery.propTypes = {

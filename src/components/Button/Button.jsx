@@ -1,15 +1,12 @@
-import { Component } from 'react';
 import { ButtonLoadMore } from './Button.styled';
 import PropTypes from 'prop-types';
 
-export class Button extends Component {
-  render() {
-    return (
-      <ButtonLoadMore type="button" onClick={this.props.handleLoadMore}>
-        Load more
-      </ButtonLoadMore>
-    );
-  }
+export function Button({ handleLoadMore }) {
+  return (
+    <ButtonLoadMore type="button" onClick={handleLoadMore}>
+      Load more
+    </ButtonLoadMore>
+  );
 }
 
 Button.propTypes = {
